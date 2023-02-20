@@ -10,10 +10,10 @@ describe('FeedItemComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ FeedItemComponent ],
+      declarations: [FeedItemComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
     })
-    .compileComponents();
+      .compileComponents();
   }));
 
   beforeEach(() => {

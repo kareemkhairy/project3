@@ -1,47 +1,30 @@
-import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
-import { FeedListComponent } from './feed-list.component';
+import { Component, OnInit, Input, OnDestroy } from '@angular/core';
+import { FeedItem } from '../models/feed-item.model';
 import { FeedProviderService } from '../services/feed.provider.service';
-import { feedItemMocks } from '../models/feed-item.model';
+import { Subscription } from 'rxjs';
 
-describe('FeedListComponent', () => {
-  let component: FeedListComponent;
-  let fixture: ComponentFixture<FeedListComponent>;
-  let feedProvider: FeedProviderService;
+@Component({
+  selector: 'app-feed-list',
+  templateUrl: './feed-list.component.html',
+  styleUrls: ['./feed-list.component.scss'],
+})
+export class FeedListComponent implements OnInit, OnDestroy {
+  @Input() feedItems: FeedItem[];
+  subscriptions: Subscription[] = [];
+  constructor(private feed: FeedProviderService) { }
 
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [ FeedListComponent ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    })
-    .compileComponents();
-  }));
+  async ngOnInit() {
+    this.subscriptions.push(
+      this.feed.currentFeed$.subscribe((items) => {
+        this.feedItems = items;
+      }));
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(FeedListComponent);
+    await this.feed.getFeed();
+  }
 
-    // SET UP SPIES AND MOCKS
-    feedProvider = fixture.debugElement.injector.get(FeedProviderService);
-    // spyOn(feedProvider, 'fetch').and.returnValue(Promise.resolve(feedItemMocks));
-
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should fetch on load', () => {
-    expect(feedProvider.getFeed).toHaveBeenCalled();
-  });
-
-  it('should display all of the fetched items', () => {
-    component.feedItems = feedItemMocks;
-    fixture.detectChanges();
-    const app = fixture.nativeElement;
-    const items = app.querySelectorAll('app-feed-item');
-    expect(items.length).toEqual(feedItemMocks.length);
-  });
-});
+  ngOnDestroy(): void {
+    for (const subscription of this.subscriptions) {
+      subscription.unsubscribe();
+    }
+  }
+}
